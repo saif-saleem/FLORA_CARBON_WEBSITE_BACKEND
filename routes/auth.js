@@ -51,7 +51,11 @@ router.post('/signin', async (req, res) => {
       { expiresIn: '5h' },
       (err, token) => {
         if (err) throw err;
-        res.json({ token });
+        res.json({
+          token,
+          name: user.name,
+          email: user.email,
+        });
       }
     );
   } catch (err) {

@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User'); // This line is now correct
+const auth = require('../middleware/auth');
 const router = express.Router();
 
 // SIGN UP ROUTE
@@ -60,6 +61,20 @@ router.post('/signin', async (req, res) => {
     );
   } catch (err) {
     console.error(err.message); // Log the error for debugging
+    res.status(500).send('Server error');
+  }
+});
+
+// GET USER DETAILS ROUTE (Protected)
+router.get('/get', auth, async (req, res) => {
+  try {
+    // User is already attached to req by auth middleware
+    res.json({
+      name: req.user.name,
+      email: req.user.email,
+    });
+  } catch (err) {
+    console.error(err.message);
     res.status(500).send('Server error');
   }
 });

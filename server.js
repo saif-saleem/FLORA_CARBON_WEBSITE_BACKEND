@@ -9,27 +9,13 @@ const app = express();
 // Parse JSON
 app.use(express.json());
 
-// --- CORS (lock to your frontends) ---
-const allowed = [
-  'http://localhost:5173',
-  'https://floracarbon.netlify.app',
-  'https://floracarbon.ai',
-  'https://www.floracarbon.ai',
-];
-
+// --- CORS (open for all origins - flexible for development) ---
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow non-browser tools (curl/Postman)
-      if (!origin) return callback(null, true);
-
-      if (allowed.includes(origin)) {
-        return callback(null, true);
-      }
-      // Block everything else (safer in production)
-      return callback(new Error('Not allowed by CORS'));
-    },
+    origin: '*', // Allow all origins
     credentials: false,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'X-Requested-With'],
   })
 );
 
@@ -42,12 +28,18 @@ mongoose
     process.exit(1);
   });
 
+// --- Root route ---
+app.get('/', (_req, res) => {
+  res.status(200).json({ message: 'Flora Carbon backend is running successfully!' });
+});
+
 // --- Health check ---
 app.get('/health', (_req, res) => res.status(200).send('ok'));
 
 // --- Routes ---
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/payment', require('./routes/payment'));
 
 // --- Start server ---
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ API running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running on localhost:${PORT}`));

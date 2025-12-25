@@ -37,9 +37,11 @@ app.get('/', (_req, res) => {
 app.get('/health', (_req, res) => res.status(200).send('ok'));
 
 // --- Routes ---
+// --- Routes ---
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/payment', require('./routes/payment'));
-
+// ADD THIS LINE BELOW
+app.use('/api/contact', require('./routes/contact'));
 // --- Start server ---
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Server running on localhost:${PORT}`));

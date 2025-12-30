@@ -39,6 +39,7 @@ app.get('/health', (_req, res) => res.status(200).send('ok'));
 // --- Routes ---
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/payment', require('./routes/payment'));
+app.use('/api/contact', require('./routes/contact'));
 
 // --- Start server ---
 const PORT = process.env.PORT || 5000;

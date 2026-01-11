@@ -273,7 +273,7 @@ router.post('/forgot-password', async (req, res) => {
     auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
   });
 
-  const resetUrl = `http://localhost:5173/reset-password/${token}`;
+  const resetUrl = `https://floracarbon.ai/reset-password/${token}`;
 
   const mailOptions = {
     to: user.email,

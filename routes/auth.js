@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User'); // This line is now correct
 const auth = require('../middleware/auth');
 const router = express.Router();
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 // SIGN UP ROUTE
 router.post('/signup', async (req, res) => {
@@ -248,6 +250,62 @@ router.get('/trial-status', auth, async (req, res) => {
     console.error(err.message);
     res.status(500).send('Server error');
   }
+});
+
+// 1. FORGOT PASSWORD - Send Email
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) return res.status(404).json({ msg: "User not found" });
+
+  // Create a random token
+  const token = crypto.randomBytes(20).toString('hex');
+
+  // Save token to user (valid for 1 hour)
+  user.resetPasswordToken = token;
+  user.resetPasswordExpires = Date.now() + 3600000; 
+  await user.save();
+
+  // Send the email (Reuse your Nodemailer config)
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+  });
+
+  const resetUrl = `http://localhost:5173/reset-password/${token}`;
+
+  const mailOptions = {
+    to: user.email,
+    from: process.env.EMAIL_USER,
+    subject: 'Flora Carbon Password Reset',
+    text: `You are receiving this because you requested a password reset. \n\n Please click on the following link: \n\n ${resetUrl}`
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    res.json({ msg: "Recovery email sent!" });
+  } catch (err) {
+    res.status(500).json({ msg: "Error sending email" });
+  }
+});
+
+// 2. RESET PASSWORD - Update Database
+router.post('/reset-password/:token', async (req, res) => {
+  const user = await User.findOne({
+    resetPasswordToken: req.params.token,
+    resetPasswordExpires: { $gt: Date.now() } // Check if not expired
+  });
+
+  if (!user) return res.status(400).json({ msg: "Token is invalid or expired" });
+
+  // Update password (the pre-save hook in your Model will hash this automatically)
+  user.password = req.body.password;
+  user.resetPasswordToken = null;
+  user.resetPasswordExpires = null;
+  await user.save();
+
+  res.json({ msg: "Password updated successfully!" });
 });
 
 module.exports = router;

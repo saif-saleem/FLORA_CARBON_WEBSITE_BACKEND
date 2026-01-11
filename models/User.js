@@ -23,6 +23,9 @@ const UserSchema = new mongoose.Schema({
   paymentStatus: { type: String, enum: ['pending', 'completed', 'failed', 'refunded'], default: null },
   lastPaymentDate: { type: Date, default: null },
   billingCycle: { type: String, enum: ['monthly', 'annual'], default: null },
+  // ... existing fields ...
+  resetPasswordToken: { type: String, default: null },
+  resetPasswordExpires: { type: Date, default: null },
 });
 
 // This is a crucial security step: Hash the password before saving a new user
